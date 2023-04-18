@@ -1,5 +1,4 @@
  - type: web
-    name: Flask
     env: python
     repo: https://github.com/lnxbsh/saudebaziapp.git
     buildCommand: pip3 install -r requirements.txt
