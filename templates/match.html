@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>
+            Matcher
+        </title>
+    </head>
+    <body>
+        <h3> <form action="/matching" method="get">
+            Enter Number: <input type="text" name="number">
+            <button>Fetch</button>
+            </form></h3>
+        <div id="dataserver">
+            <table>
+            <tbody>
+                <tr>
+                
+                <form action = "/matching" method="post">
+                <tr>
+                    {% for x in data[0] %}
+                        <tr>
+                            <td>
+                                <input type="text" value = "{{ x }}" >
+                            </td>    
+                        </tr> 
+                    {% endfor %}
+                </tr>
+                <input type="hidden" name="_method" value="put" />
+                <button type="submit"> Update</button>
+                </form>
+            </tbody>
+        </table>
+        </div>
+
+        <div id="leads">
+            <table>
+                <tbody>
+                    
+                        {% for x in data[1][0] %}
+                        <tr>
+                            <td>
+                                <span>{{ x }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
