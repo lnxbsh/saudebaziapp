@@ -11,7 +11,7 @@ app = Flask(__name__)
 def db(method='GET', data=''):
     customer = ''
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
         user=os.getenv('username'),
         password=os.getenv('password'))
@@ -115,5 +115,5 @@ def index():
     if request.method == 'GET':
         return render_template("index.html")
 
-
-app.run(port=8000)
+if __name__ == "__main__":
+    app.run(port=8000)
