@@ -3,48 +3,180 @@
         <title>
             Matcher
         </title>
+        <style>
+            #leads table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        </style>
     </head>
     <body>
         <h3> <form action="/matching" method="get">
-            Enter Number: <input type="text" name="number">
+            Enter Number: <input type="text" name="number" id="number">
             <button>Fetch</button>
             </form></h3>
         <div id="dataserver">
+            
+            
             <table>
             <tbody>
                 <tr>
+                <th>Type of customer</th>
+                <th>Source</th>
+                <th>Status of calling</th>
+                <th>Date</th>
+                <th>Company Name</th>
+                <th>Location</th>
+                <th>Mobile 1</th>
+                <th>Mobile 2</th>
+                <th>Call disposition</th>
+                <th>Comments</th>
+                <th>Call back comments</th>
+                <th>Customer Name</th>
+                <th>Current Commodity</th>
+                <th>Whatsapp Number</th>
+                <th>Company brochure</th>
+                <th>Business card</th>
+                <th>Target customers</th>
+                <th>2nd call Comments</th>
                 
-                <form action = "/matching" method="post">
+                <button onclick="updateProfile()">Update</button>
+                </tr> 
                 <tr>
                     {% for x in data[0] %}
-                        <tr>
+                        
                             <td>
                                 <input type="text" value = "{{ x }}" >
                             </td>    
-                        </tr> 
+                        
                     {% endfor %}
                 </tr>
-                <input type="hidden" name="_method" value="put" />
-                <button type="submit"> Update</button>
-                </form>
+                
             </tbody>
         </table>
         </div>
+        <hr>
 
         <div id="leads">
             <table>
                 <tbody>
-                    
+                    <tr>
+                        <!-- <th>ID(Must not changed)</th>
+                        <th>Type of customer</th>
+                        <th>Source</th>
+                        <th>Status of calling</th>
+                        <th>Date</th>
+                        <th>Company Name</th>
+                        <th>Location</th>
+                        <th>Mobile 1</th>
+                        <th>Mobile 2</th>
+                        <th>Call disposition</th>
+                        <th>Comments</th>
+                        <th>Call back comments</th>
+                        <th>Customer Name</th>
+                        <th>Current Commodity</th>
+                        <th>Whatsapp Number</th>
+                        <th>Company brochure</th>
+                        <th>Business card</th>
+                        <th>Target customers</th>
+                        <th>2nd call Comments</th> -->
+                        </tr>
+                        
+                        <tr> 
                         {% for x in data[1][0] %}
                         <tr>
                             <td>
-                                <span>{{ x }}</span>
+                                {% for xin in x %}
+                                    <td onclick=inForm(this.innerHTML)>{{ xin }}</td>
+                                {%endfor%}
                             </td>
                         </tr>
                         {% endfor %}
-                    
+                        </tr>
                 </tbody>
             </table>
         </div>
+
+        <div id="collection">
+                 
+                Conference 1 :<input type="text" name="entered_number">
+                Conference 2(Dialed number): <input type="text" name="dialed_number">
+                Comment: <input type="text" name="comment"> 
+                <button onclick="postComment()">Comment</button>
+        
+            </div>
+
+        <!-- <div id="comments">
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Entered Number</th>
+                        <th>Dialed Number</th>
+                        <th>Comment</th>
+                    </tr>
+                    <tr id="autogenerate">
+
+                    </tr>
+                </tbody>
+            </table>
+        </div> -->
+        <script>
+            function updateProfile(){
+                const dataserver = document.getElementById("dataserver")
+                const arr = {}
+                const inputs = dataserver.querySelectorAll("input")
+                const heads = dataserver.querySelectorAll("th")
+                for (let index = 0; index < inputs.length; index++) {
+                    arr[heads[index].innerHTML] = inputs[index].value   
+                }
+                postData("/matching", arr ,"PUT").then((data) => {
+                    console.log(data); alert("updated");; // JSON data parsed by `data.json()` cal
+                });
+            }
+            function inForm(val){
+                //document.getElementById("collection").getElementsByClassName("input > entered_number").value = document.getElementById("number").value;
+                document.getElementsByTagName("input").entered_number.value = window.location.search.split("=")[1]
+                document.getElementsByTagName("input").dialed_number.value = val;
+            }
+
+            function postComment(){
+                const enter = document.getElementsByTagName("input").entered_number.value;
+                const dial = document.getElementsByTagName("input").dialed_number.value;
+                const comment = document.getElementsByTagName("input").comment.value;
+                const timestamp = Date.now()
+                
+                postData("/matching", { entered_number: enter, dialed_number:dial, comment:comment, timestamp:timestamp }).then((data) => {
+                     console.log(data); alert("done");; // JSON data parsed by `data.json()` cal
+                }); 
+            }
+
+            function addComment(data){
+                const autogenerate = document.getElementById("autogenerate")
+                for (const key in data["comment_data"]) {
+                    autogenerate.append(document.createElement('td').append(document.createTextNode(key)))
+                    
+                }
+            }
+
+            async function postData(url = "", data = {}, method="POST") {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: method, // *GET, POST, PUT, DELETE, etc.
+    mode: "cors", // no-cors, *cors, same-origin
+    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: "same-origin", // include, *same-origin, omit
+    headers: {
+      "Content-Type": "application/json",
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: "follow", // manual, *follow, error
+    referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify(data), // body data type must match "Content-Type" header
+  });
+  return response.json(); // parses JSON response into native JavaScript objects
+}
+
+        </script>
     </body>
 </html>
