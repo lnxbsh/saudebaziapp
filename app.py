@@ -3,26 +3,29 @@ import psycopg2
 import re
 import json
 import os
+from psycopg2 import sql
 app = Flask(__name__)
 
 
-
+user = os.getenv('username')
+password = os.getenv('password')
 #@app.route('/init')
 def db(method='GET', data=''):
     customer = ''
     conn = psycopg2.connect(
         host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
-        user=os.getenv('username'),
-        password=os.getenv('password'))
-    cur = conn.cursor()
+        user=user,
+        password=password)
+    cur = conn.cursor() 
     
     if data:
         if method == 'POST':
-            cur.execute('INSERT INTO COMMENT_DATA(entered_number, dialed_number, comment, timestamp) VALUES(%s,%s,%s,%s)',(data['entered_number'],data['dialed_number'],data['comment'],data['timestamp']), )
+            cur.execute('INSERT INTO comment_data(number_entered_seeker, number_dialed_provided, comment, timestamp) VALUES(%s,%s,%s,%s)',(data['number_entered_seeker'],data['number_dialed_provided'],data['comment'],data['timestamp']), )
             conn.commit()
-            cur.execute('SELECT * FROM COMMENT_DATA')
+            cur.execute('SELECT * FROM comment_data')
             return cur.fetchall()
+        
         elif method == 'PUT':
             print(data)
 
@@ -32,19 +35,41 @@ def db(method='GET', data=''):
             conn.commit()
             return "Data Updated"
         
-        elif method == 'GET':    
+        elif method == 'GET':
+            inx = 0
+            table_coloumn = ["index","Type of customer","Source","Status of calling","Date","Company Name","Location","Mobile 1","Mobile 2","Call disposition","Comments","Call back comments","Customer Name","Current Commodity","Whatsapp Number","Company brochure","Business card","Target customers","2nd call Comments"]    
             alist = []
-            leads = set()
+            #leads = dict()
             print(f'this is data {data}')
             cur.execute('SELECT * FROM CLEANEDTABLE WHERE "Mobile 1" LIKE %(name)s', { 'name': '%{}%'.format(data)})
             customer = cur.fetchone()
+            
             print(customer)
             #leads = fetchMatch(cur,customer[13])
             print(customer[13])
-            cus = re.sub('[^A-Za-z0-9]+', '-', customer[13])
+            if customer[13]:
+                cus = re.sub('[^A-Za-z0-9]+', '-', customer[13])
+            else: 
+                cus = 'None' 
             print(cus)
-            for d in cus.split('-'):
-                alist.append(fetchMatch(cur,d))
+            if cus != 'None':
+                for d in cus.split('-'):
+                    temp = fetchMatch(cur,d)
+                    for t in temp:
+                        leads = {}
+                        for i in range(len(t)):
+                            leads[table_coloumn[i]] = t[i]
+                    alist.append(leads)
+                
+            else:
+                temp = fetchMatch(cur,'spices')
+                for t in temp:
+                    leads = {}
+                    for i in range(len(t)):
+                        leads[table_coloumn[i]] = t[i]
+                    alist.append(leads)
+                
+            print(alist)
             return customer, alist
             # print(alist)
             # for a in alist:
@@ -59,8 +84,21 @@ def db(method='GET', data=''):
     
 
 
-
-
+@app.route('/broker_ref',methods=["POST","PUT","GET"])
+def addBroker():
+    if request.method == "POST":
+        data = request.get_json("body")
+        print(data)
+        broker_mobile = data["broker_mobile"]
+        broker_name = data["broker_name"]
+        number_entered_seeker = data["number_entered_seeker"]
+        number_dialed_provided = data["number_dialed_provided"]
+        #string = f"INSERT INTO broker_ref (broker_name,broker_mobile,number_entered_seeker,number_dialed_provided) values ( '%({broker_name})s',{broker_mobile},{number_entered_seeker},{number_dialed_provided})"
+        string = "INSERT INTO broker_ref (broker_name,broker_mobile,number_entered_seeker,number_dialed_provided) VALUES ('{}','{}','{}','{}' )".format(broker_name,broker_mobile,number_entered_seeker,number_dialed_provided)
+        broker_db(string)
+        dic = {}
+        dic["status"] = "yo yo"
+        return json.dumps(dic)
 
 @app.route('/matching', methods=["GET",'POST',"PUT"])
 def match():
@@ -68,17 +106,17 @@ def match():
         number = request.args.get('number')
         #print (number)
         fetch, leads = db(data=number)
-        return render_template('match.html',data = [fetch[1:],leads])
+        return render_template('match.html',data = {"fetch":fetch[1:],"leads":leads})
         #return  json.dumps(db('POST', data))
 
     elif request.method == 'POST':
         print('POST is called')
         formData = request.get_json("body")
-        entered_number = formData['entered_number']
-        dialed_number = formData['dialed_number']
+        number_dialed_provided = formData['number_dialed_provided']
+        number_entered_seeker = formData['number_entered_seeker']
         comment = formData['comment']
         timestamp = formData['timestamp']
-        data = { 'entered_number':entered_number, 'dialed_number': dialed_number, 'comment':comment, 'timestamp':timestamp }
+        data = { 'number_entered_seeker':number_entered_seeker, 'number_dialed_provided': number_dialed_provided, 'comment':comment, 'timestamp':timestamp }
         comment_data= db('POST',data=data)
         return json.dumps({"message":"Done", "comment_data":comment_data})
 
@@ -106,8 +144,145 @@ def fetchMatch(cur,commoditiy):
     print(commoditiy)
     cur.execute('SELECT * FROM cleanedtable WHERE "Current Commodity" LIKE %(name)s ORDER BY RANDOM() LIMIT 3', { 'name': '%{}%'.format(commoditiy)})
     #cur.execute("SELECT * FROM CLEANEDTABLE WHERE 'Current Commodity' = %s", commoditiy)
-    return cur.fetchall()    
+    return cur.fetchall()
 
+
+@app.route('/handleCustomer', methods=['POST'])
+def handleCustomer():
+        status = dbHelper(request.get_json("body")["number"])
+        dic = {}
+        dic["status"] = status
+        return json.dumps(dic)
+    
+
+
+@app.route('/createCustomer', methods= ["POST","PUT"])
+def createCustomer():
+    dic ={}
+    dic["status"] = "Other Than Post"
+    if request.method == "POST":
+        status = addCustomer(request.get_json("body"))
+        dic = {}
+        dic["status"] = status
+        return json.dumps(dic)
+    return json.dumps(dic)
+
+
+def addCustomer(data):
+    conn = psycopg2.connect(
+        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        database="saudebazi",
+        user='saudebaz',
+        password=password)
+    cur = conn.cursor()
+
+    broker_name = data["broker_name"]
+    broker_number = data["broker_mobile"]
+    del(data["broker_name"])
+    del(data["broker_mobile"])
+    k = list()
+    for key in data.keys():
+        k.append(key)
+    
+    k = ",".join(k)
+
+    k = "(" + k +  ")"
+    
+    v = list()
+    for val in data.values():
+        val = "'" + val + "'"
+        v.append(val)
+    v = ",".join(v)
+    v = "(" + v +  ")" 
+        
+    #cur.execute(f'UPDATE CLEANEDTABLE SET "{key}" =' +  ' %(val)s WHERE "Mobile 1" LIKE %(number)s',({"val":value,"number":'%{}%'.format(data["Mobile 1"])}))
+    print(f"{k} = {v}")
+    cur.execute("INSERT INTO company_details {0} VALUES{1}".format(k,v))
+    conn.commit()
+    return "Created"
+
+
+def broker_db(query):
+    conn = psycopg2.connect(
+        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        database="saudebazi",
+        user='saudebaz',
+        password=password)
+    cur = conn.cursor()
+    cur.execute(query)
+    conn.commit()
+    cur.close()
+    conn.close()
+    print("done")
+
+@app.route('/connectedStatus',methods = ['POST'])
+def statusCheckDBHelper():
+    if request.method == "POST":
+        data = request.get_json("body")
+        dic = checkExistDB(data)
+    return json.dumps(dic)
+
+
+
+def checkExistDB(data):
+    conn = psycopg2.connect(
+        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        database="saudebazi",
+        user='saudebaz',
+        password=password)
+    cur = conn.cursor()
+    dic = {}
+    number1,number2,connected,timestamp = data['number_entered_seeker'],data['number_dialed_provided'],data['connected'],data['timestamp']
+    cur.execute(f"select count(*) from connected_status where number_entered_seeker LIKE '%{number1}%' AND  number_dialed_provided LIKE '%{number2}%'")
+    print(cur.fetchall())
+    cur.execute(f"select count(*) from connected_status where  number_dialed_provided='{number2}'")
+    # query = sql.SQL("select count(*) from {table} where {pkey} = %s AND {skey} = %s").format(
+    
+    # table=sql.Identifier('connected_status'),
+    # pkey=sql.Identifier('number_dialed_provided'),
+    # skey = sql.Identifier('number_entered_seeker'))
+    # cur.execute(query,(number2,number1,))
+    val = cur.fetchone()
+    print(val[0])
+    if  not val[0]:
+        cur.execute(f"INSERT INTO connected_status(number_dialed_provided,number_entered_seeker,connected,timestamp) values('{number1}','{number2}','{connected}','{timestamp}')")
+        conn.commit()
+        dic["status"] = "Connected"
+        return dic
+    
+    else:
+        
+        dic["status"] = "Already Connected"
+        return dic
+    
+        
+
+def dbHelper(number):
+    conn = psycopg2.connect(
+        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        database="saudebazi",
+        user='saudebaz',
+        password=password)
+    cur = conn.cursor()
+
+    # broker_name = data["broker_name"]
+    # broker_number = data["broker_number"]
+    # del(data["broker_name"])
+    # del(data["broker_number"])
+    # keys = set(data.keys())
+    # keys.remove("broker_name","broker_number")
+    # values = set(data.values())
+    # values.remove()
+    # cur.execute(f'INSERT INTO company_details {keys} values({values})')
+    # conn.commit()
+    
+    cur.execute(f"select count(*) from company_details where number like '%{number}%' " )
+    val = cur.fetchall()
+    print(val)
+    cur.close()
+    conn.close()
+    return val[0]
+    
 
 
 @app.route('/')
@@ -116,4 +291,4 @@ def index():
         return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    app.run(port=8000,debug=True)

@@ -1,67 +1,96 @@
 <html>
-    <head>
-        <title>
-            Matcher
-        </title>
-        <style>
-            #leads table, th, td {
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Matcher
+    </title>
+    <style>
+        table,
+        th,
+        td {
             border: 1px solid black;
             border-collapse: collapse;
         }
-        </style>
-    </head>
-    <body>
-        <h3> <form action="/matching" method="get">
-            Enter Number: <input type="text" name="number" id="number">
-            <button>Fetch</button>
-            </form></h3>
-        <div id="dataserver">
-            
-            
-            <table>
+
+        th,
+        td {
+            padding: 10px;
+        }
+
+        #price_1,
+        #company_details_1 {
+            display: none;
+        }
+
+        input {
+            size: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="border: 10px black;">
+        <h4> <u>Enter the number of customer who is seeking new customers</u></h4>
+        <h3>
+
+            <form action="/matching" method="GET">
+                Enter Number: <input type="text" name="number" id="number">
+                <button>Fetch</button>
+            </form>
+        </h3>
+    </div>
+
+
+    <div id="dataserver">
+        <h3> <u>Profile of Customer who wants new customers</u></h3>
+
+
+        <table>
             <tbody>
                 <tr>
-                <th>Type of customer</th>
-                <th>Source</th>
-                <th>Status of calling</th>
-                <th>Date</th>
-                <th>Company Name</th>
-                <th>Location</th>
-                <th>Mobile 1</th>
-                <th>Mobile 2</th>
-                <th>Call disposition</th>
-                <th>Comments</th>
-                <th>Call back comments</th>
-                <th>Customer Name</th>
-                <th>Current Commodity</th>
-                <th>Whatsapp Number</th>
-                <th>Company brochure</th>
-                <th>Business card</th>
-                <th>Target customers</th>
-                <th>2nd call Comments</th>
-                
-                <button onclick="updateProfile()">Update</button>
-                </tr> 
+                    <th>Type of customer</th>
+                    <th>Source</th>
+                    <th>Status of calling</th>
+                    <th>Date</th>
+                    <th>Company Name</th>
+                    <th>Location</th>
+                    <th>Mobile 1</th>
+                    <th>Mobile 2</th>
+                    <th>Call disposition</th>
+                    <th>Comments</th>
+                    <th>Call back comments</th>
+                    <th>Customer Name</th>
+                    <th>Current Commodity</th>
+                    <th>Whatsapp Number</th>
+                    <th>Company brochure</th>
+                    <th>Business card</th>
+                    <th>Target customers</th>
+                    <th>2nd call Comments</th>
+
+
+                </tr>
                 <tr>
-                    {% for x in data[0] %}
-                        
-                            <td>
-                                <input type="text" value = "{{ x }}" >
-                            </td>    
-                        
+                    {% for x in data["fetch"] %}
+
+                    <td style="word-wrap:break-word;">
+                        <input type="text" value="{{ x }}">
+                    </td>
+
                     {% endfor %}
                 </tr>
-                
+
             </tbody>
         </table>
-        </div>
-        <hr>
+        <button onclick="updateProfile()">Update</button>
+    </div>
+    <hr>
 
-        <div id="leads">
-            <table>
-                <tbody>
-                    <tr>
-                        <!-- <th>ID(Must not changed)</th>
+    <div id="leads">
+        <!-- <table>
+            <tbody>
+                <tr>
+                    <th>ID(Must not changed)</th>
                         <th>Type of customer</th>
                         <th>Source</th>
                         <th>Status of calling</th>
@@ -79,34 +108,539 @@
                         <th>Company brochure</th>
                         <th>Business card</th>
                         <th>Target customers</th>
-                        <th>2nd call Comments</th> -->
-                        </tr>
+                        <th>2nd call Comments</th> 
+                </tr> -->
+
+        <table id="customermatcher">
+            <tbody>
+
+                <tr>
+
+                    {% for x in data["leads"] %}
+
+                <tr>
+
+                    <td><a href="#" onclick="inForm(this)">Match</a></td>
+                    {% set fields = ["Company Name", "Mobile 1", "Current Commodity", "Customer Name","Target customers"] %}
+                    {% for key, value in x.items() %}
+
+                    {% if key in fields %}
+                    <td name="{{key}}"> {{value}} </td>
+                    {%else%}
+                    <input type="hidden" name="{{key}}" value="{{value}}">
+                    {%endif%}
+
+                    {% endfor %}
+
+
+                </tr>
+                {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        <table>
+        </table>
+    </div>
+
+
+
+
+    <div id="collection" style="padding: 70px 0; border: 3px solid green; width: fit-content; float:left;">
+        <table id="data_collection_table" style="border-width: 0px;">
+            <tbody>
+                <tr>
+                    <th name="customer_1">Customer Seeking New Customers</th>
+                    <th name="customer_2">Customer Provided</th>
+                </tr>
+                <tr>
+                    <td>
+                        <table id="nav_control">
+                            <tbody>
+                                <tr>
+                                    <th>
+                                        <a href="#" onclick="navControl('basic')" name="nav-basic">Basic</a>
+                                        &nbsp; &nbsp; &nbsp; &nbsp;
+                                        <a href="#" onclick="navControl('company_details')" name="nav-company">Company
+                                            Details</a>
+                                        &nbsp; &nbsp; &nbsp; &nbsp;
+                                        <a href="#" onclick="navControl('price')" name="nav-price">Prices</a>
+                                        &nbsp; &nbsp; &nbsp; &nbsp;
+                                        <a href="#" onclick="navControl('others')" name="nav-others">Others</a>
+                                        &nbsp; &nbsp; &nbsp; &nbsp;
+                                    </th>
+
+                                </tr>
+                                <tr>
+                                    <h4 id="entered_name"></h4> <span value="" name="entered_number"></span>
+                                    <td>
+
+                                        <div id="basic" style="display: block;">
+                                            <form>
+                                                Number: <input type="text" name="number" maxlength="10">
+                                                &nbsp;&nbsp;&nbsp; <br> <br> Name of Company: <input type="text"
+                                                    name="company_name">
+                                                <br> <br>
+                                                Commodity Type:
+                                                <select name="commodity_type">
+                                                    <option value="cereals">Cereals</option>
+                                                    <option value="pulses">Pulses</option>
+                                                    <option value="spices">Spices</option>
+                                                    <option value="oilseed">Oil
+                                                        Seed</option>
+                                                    <option value="fruits">Fruits</option>
+                                                    <option value="vegetable">Vegetable</option>
+                                                    <option value="dryfruits">Dry
+                                                        Fruits</option>
+                                                    <br> <br>
+                                                </select>
+
+                                                Commodity Name: <input type="text" name="commodity_name"
+                                                    placeholder="Commodity Name">
+                                                <br> <br>
+                                                Quality of Commodities: <input type="text" name="commodity_quality">
+
+                                                <br> <br>
+
+                                                Type of Customer:
+                                                <!-- <fieldset name="customer_type">
+                                                    <input type="checkbox" name="customer_type"
+                                                        value="exporters">Exporters
+                                                    <input type="checkbox" name="customer_type"
+                                                        value="manufacturer">Manufacturer
+                                                    <input type="checkbox" name="customer_type" value="trader">Trader
+                                                    <input type="checkbox" name="customer_type"
+                                                        value="government">Government
+                                                    <input type="checkbox" name="customer_type"
+                                                        value="wholesaler">Wholesaler
+                                                    <input type="checkbox" name="customer_type"
+                                                        value="retailer">Retailer
+                                                    <br> <br>
+                                                </fieldset> -->
+                                                <select name="customer_type">
+                                                    <option value="none">None</option>
+                                                    <option value="exporters">Exporters</option>
+                                                    <option value="manufacturer">Manufacturer</option>
+                                                    <option value="trader">Trader</option>
+                                                    <option value="government">Government</option>
+                                                    <option value="wholesaler">Wholesaler</option>
+                                                    <option value="retailer">Retailer</option>
+                                                    <br> <br>
+                                                </select>
+                                            </form>
+                                        </div>
+
+
+                                        <div id="company_details" style="display:none;">
+                                            <form>
+                                                Address: <textarea name="business_address"
+                                                    placeholder="Enter address here"></textarea> <br> <br>
+
+                                                Avg. quantity sold per customer <input type="text" name="avg_quantity">
+                                                <select name="avg_option">
+                                                    <option value="ton">Ton</option>
+                                                    <option value="qtl">QTL</option>
+                                                </select>
+                                                <br><br>
+                                                Photo Shared : <select name="img_shared"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes">Yes</option>
+                                                </select>
+
+                                                Business Card: <select name="card_img">
+
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes">Yes</option>
+                                                </select>
+                                                <br> <br>
+
+                                                Year of Incorporation: <input type="text" name="year_incorporation">
+                                                <br> <br>
+                                                Selling Markets: <input type="text" name="selling_cities">
+                                                <br> <br> Number of Selling Markets: <input type="text"
+                                                    name="selling_market_number"> <br> <br>
+                                                Estimated Customer: <input type="text" name="estimated_customers">
+                                                <br><br>
+                                                Current Broker Reference:
+                                                <div id="broker_details">
+                                                    Name: <input type="text" name="broker_name"> <br> <br>
+                                                    Mobile: <input type="text" name="broker_mobile">
+                                                </div>
+
+                                            </form>
+                                        </div>
+
+                                        <div id="price" style="display: none;">
+
+                                            <form>
+                                                Selling Credit Period: <input type="text"
+                                                    name="selling_credit_period"><br><br>
+                                                Buying Credit Period: <input type="text" name="buying_credit_period">
+                                                <br><br>
+
+
+
+                                                Yearly purchases: <input type="text" name="yearly_purchase"> <select
+                                                    name="valuation">
+                                                    <option value="crore">Crore</option>
+                                                    <option value="nil" selected>Nil</option>
+                                                    <option value="thousand">Thousand</option>
+                                                    <option value="lakhs">Lakhs</option>
+                                                </select>
+                                                <br> <br>
+                                                Yearly Turnover: <input type="text" name="yearly_turnover"> <select
+                                                    name="turnover">
+                                                    <option value="crore">Crore</option>
+                                                    <option value="nil" selected>Nil</option>
+                                                    <option value="thousand">Thousand</option>
+                                                    <option value="lakhs">Lakhs</option>
+                                                </select>
+                                                <br> <br>
+                                            </form>
+                                        </div>
+                                        <div id="others" style="display: none;">
+
+                                            <form>
+
+                                                Number of Empolyee: <input type="text" name="number_empolyee"><br>
+                                                <br>
+                                                GST Number: <input type="text" name="gst_number"><br> <br>
+                                                PAN Number: <input type="text" name="pan_number"><br><br>
+                                                Trading on NCDEX: <select name="ncdex_list">
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes"> Yes</option>
+                                                </select> <br><br>Trading on Stock Market: <select
+                                                    name="stock_market_trading">
+
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes"> Yes</option>
+                                                </select>
+                                                <br><br>
+                                                Own Factory: <select name="own_factory">
+
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes">Yes</option>
+                                                </select> &nbsp; &nbsp; &nbsp; Location(Leave empty if No): <input
+                                                    type="text" name="factory_location" placeholder="Leave empty if No">
+                                                <br> <br>
+                                                Own Godown/Warehouse: <select name="own_storage">
+
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes">Yes</option>
+                                                </select> &nbsp; &nbsp; &nbsp; Location(Leave empty if No): <input
+                                                    type="text" name="storage_location" placeholder="Leave empty if No">
+                                                <br> <br>
+
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+    </div>
+
+
+    </td>
+    <td>
+        <table id="nav_control_1">
+            <tbody>
+                <tr>
+                    <th>
+                        <a href="#" onclick="navControl_1('basic_1')">Basic</a>
+                        &nbsp; &nbsp; &nbsp; &nbsp;
+                        <a href="#" onclick="navControl_1('company_details_1')">Company Details</a>
+                        &nbsp; &nbsp; &nbsp; &nbsp;
+                        <a href="#" onclick="navControl_1('price_1')">Prices</a>
+                        &nbsp; &nbsp; &nbsp; &nbsp;
+                        <a href="#" onclick="navControl_1('others_1')">Others</a>
+
+                    </th>
+
+
+
+
+                </tr>
+                <tr>
+                    <h4 id="dialed_name"></h4> <span value="" name="dialed_number"></span>
+                    <td>
+
+                        <div id="basic_1" style="display: block;">
+                            <form>
+
+                                Number: <input type="text" name="number" maxlength="10"> <br> <br>
+                                Name of Company: <input type="text" name="company_name">
+                                <br> <br>
+
+                                Commodity Type:
+                                <select name="commodity_type">
+                                    <option value="none">None</option>
+                                    <option value="cereals">Cereals</option>
+                                    <option value="pulses">Pulses</option>
+                                    <option value="spices">Spices</option>
+                                    <option value="oilseed">Oil
+                                        Seed</option>
+                                    <option value="fruits">Fruits</option>
+                                    <option value="vegetable">Vegetable</option>
+                                    <option value="dryfruits">Dry
+                                        Fruits</option>
+                                    <br> <br>
+                                </select>
+                                Commodity Name: <input type="text" name="commodity_name" placeholder="Commodity Name">
+                                <br> <br>
+                                Quality of Commodities: <input type="text" name="commodity_quality">
+                                <br> <br>
+                                Type of Customer:
+                                <select name="customer_type">
+                                    <option value="none">None</option>
+                                    <option value="exporters">Exporters</option>
+                                    <option value="manufacturer">Manufacturer</option>
+                                    <option value="trader">Trader</option>
+                                    <option value="government">Government</option>
+                                    <option value="wholesaler">Wholesaler</option>
+                                    <option value="retailer">Retailer</option>
+                                    <br> <br>
+                                </select>
+                                <br> <br>
+                            </form>
+                        </div>
+
+
+                        <div id="company_details_1">
+                            <form>
+                                Address: <textarea name="business_address" placeholder="Enter address here"></textarea>
+                                <br> <br>
+
+                                Avg. quantity sold per customer <input type="text" name="avg_quantity"> <select
+                                    name="avg_option">
+                                    <option value="ton">Ton</option>
+                                    <option value="qtl">QTL</option>
+                                </select>
+                                <br><br>
+                                Photo Shared : <select name="img_shared"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                                    <option value="no" selected>No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+
+                                Business Card: <select name="card_img">
+
+                                    <option value="no" selected>No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                                <br> <br>
+
+                                Year of Incorporation: <input type="text" name="year_incorporation"> <br> <br>
+                                Selling Markets: <input type="text" name="selling_cities"> <br> <br>
+                                Number of Selling Markets: <input type="text" name="selling_market_number">
+                                <br> <br>
+                                Estimated Customer: <input type="text" name="estimated_customers"> <br><br>
+                                Current Broker Reference:
+                                <div id="broker_details">
+                                    Name: <input type="text" name="broker_name"> <br> <br>
+                                    Mobile: <input type="text" name="broker_mobile">
+                                </div>
+
+                            </form>
+                        </div>
+
+                        <div id="price_1">
+
+                            <form>
+                                Selling Credit Period: <input type="text" name="selling_credit_period"><br><br>
+                                Buying Credit Period: <input type="text" name="buying_credit_period"> <br><br>
+                                Yearly purchases: <input type="text" name="yearly_purchase"> <select name="valuation">
+                                    <option value="nil" selected>Nil</option>
+                                    <option value="crore">Crore</option>
+                                    <option value="thousand">Thousand</option>
+                                    <option value="lakhs">Lakhs</option>
+                                </select>
+                                <br> <br>
+                                Yearly Turnover: <input type="text" name="yearly_turnover"> <select name="turnover">
+                                    <option value="nil" selected>Nil</option>
+                                    <option value="crore">Crore</option>
+                                    <option value="thousand">Thousand</option>
+                                    <option value="lakhs">Lakhs</option>
+                                </select>
+                                <br> <br>
+                        </div>
+                        <div id="others_1" style="display: none;">
+
+                            <form>
+
+                                Number of Empolyee: <input type="text" name="number_empolyee"><br> <br>
+                                GST Number: <input type="text" name="gst_number"><br> <br>
+                                PAN Number: <input type="text" name="pan_number"><br><br>
+                                Trading on NCDEX: <select name="ncdex_list">
+
+                                    <option value="no" selected>No</option>
+                                    <option value="yes"> Yes</option>
+                                </select> <br> <br>Trading on Stock Market: <select name="stock_market_trading">
+
+                                    <option value="no" selected>No</option>
+                                    <option value="yes"> Yes</option>
+                                </select>
+                                <br><br>
+                                Own Factory: <select name="own_factory">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select> &nbsp; &nbsp; &nbsp; Location(Leave empty if No): <input type="text"
+                                    name="factory_location" placeholder="Leave empty if No"> <br> <br>
+                                Own Godown/Warehouse: <select name="own_storage">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select> &nbsp; &nbsp; &nbsp; Location(Leave empty if No): <input type="text"
+                                    name="storage_location" placeholder="Leave empty if No"> <br> <br>
+
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
+
+    </td>
+
+    </tr>
+
+    </tbody>
+    </table>
+    <table style="display: block; margin-left: auto; margin-right: auto; width: 40%;">
+        <tr>
+            <th>
+                <a href="#" onclick="submit('left')" style="float: left;">Save Entered Customer(left)</a>
+            </th>
+            <th>
+                <a href="#" onclick="submit('all')" style="float:center;">Save All</a>
+            </th>
+
+
+            <th>
+                <a href="#" onclick="submit('right')" style="float: right;">Save Provided Customer(right)</a>
+            </th>
+        </tr>
+    </table>
+
+    </div>
+
+    <div id="commentCollection" style="float: right;width: 640px; border: 3px solid #73AD21; padding: 10px;">
+
+        Conference 1 :<input type="text" name="entered_number">
+        Conference 2(Dialed number): <input type="text" name="dialed_number">
+        Comment: <textarea name="comment"></textarea>
+        <button onclick="postComment()">Comment</button>
+
+    </div>
+    <div style="float: left;">
+        <button onclick="setConnectedStatus()">Set Connected </button>
+        (<h4><u>Press this if Customer Seeker is connected to Customer Provided</u></h4>)
+    </div>
+
+
+    <!-- <table id="nav_control">
+            <tbody> 
+                <tr>
+                    <th><h3><a href="#" onclick= >Basic</a></h3></th>
+                    <th><h3><a href="#" onclick= >Company Details</a></h3></th>
+                    <th><h3><a href="#" onclick= >Prices</a></h3></th>
+                    <th><h3><a href="#" onclick= >Others</a></h3></th>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="baisc">
+                            <form>
+                                <h4 id="entered_name"></h4> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<h4 id="dialed_name"></h4> <br> <br>
+                                Number: <input type="text" name="number" maxlength="10"> &nbsp;&nbsp;&nbsp; Name of Company: <input type="text" name="company_name"> <br>
+                                <br> <br>
+                                    Commodity Type:
+                                        <input type="checkbox" name ="cereals" value="cereals">Cereals
+                                        <input type="checkbox" name = "pulses" value="pulses">Pulses
+                                        <input type="checkbox" name = "spices" value="spices">Spices
+                                        <input type="checkbox" name = "oilseed" value="oilseed">Oil Seed
+                                        <input type="checkbox" name = "fruits" value="fruits">Fruits
+                                        <input type="checkbox" name = "vegetable" value="vegetable">Vegetable
+                                        <input type="checkbox" name = "dry_fruits" value="dryfruits">Dry Fruits
+                                    <br> <br>
+                                    Commodity Name: <input type="text" name="commodity_name" placeholder="Commodity Name">
+                                    <br> <br>
+                                    Quality of Commodities: <input type="text" name="commodity_quality">
+                             </form>    
+                        </div>
                         
-                        <tr> 
-                        {% for x in data[1][0] %}
-                        <tr>
-                            <td>
-                                {% for xin in x %}
-                                    <td onclick=inForm(this.innerHTML)>{{ xin }}</td>
-                                {%endfor%}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tr>
-                </tbody>
-            </table>
+                        
+                            <div id="company_details">
+                            <form>
+                                Address: <textarea name="business_address" placeholder="Enter address here"></textarea> <br> <br>
+                                Type of Customer:
+                                <input type="checkbox" name = "exporters" value="exporters">Exporters
+                                <input type="checkbox" name = "manufacturer" value="manufacturer">Manufacturer
+                                <input type="checkbox" name = "traders" value="trader">Trader
+                                <input type="checkbox" name = "government" value="government">Government
+                                <input type="checkbox" name = "wholesaler" value="wholesaler">Wholesaler
+                                <input type="checkbox" name = "retailer" value="retailer">Retailer
+                            <br> <br>
+                            Avg. quantity sold per customer <input type="text" name="avg_quantity"> <select name="avg_option"><option value="ton">Ton</option><option value="qtl">QTL</option> </select>
+                            <br><br>    
+                            Photo Shared : <select name="img_shared"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                
+                                Business Card: <select name="card_img">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                                </select>
+                                <br> <br>
+                
+                                Year of Incorporation: <input type="text" name="year_incorporation"> &nbsp; &nbsp; &nbsp; 
+                                Selling Markets: <input type="text" name="selling_cities"> &nbsp;&nbsp;&nbsp;&nbsp; Number of Selling Markets: <input type="text" name="selling_market_number"> &nbsp;&nbsp;&nbsp;&nbsp;
+                                Estimated Customer: <input type="text" name="estimated_customers"> <br><br>
+                                Current Broker Reference:
+                                <div id="broker_details">
+                                    Name: <input type="text" name="broker_name"> <br> >br>
+                                    Mobile: <input type="text" name="broker_mobile">
+                                </div>
+                
+                            </form>
+                        </div>
+                        
+                            <div id="price">
+                            
+                            <form>
+                                Selling Credit Period: <input type="text" name="selling_credit_period"><br><br>
+                                Buying Credit Period: <input type="text" name="buying_credit_period"> <br><br>
+                          
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+                  Yearly purchases: <input type="text" name="yearly_purchase"> <select name="valuation"><option value="crore">Crore</option> <option value="nil">Nil</option><option value="thousand">Thousand</option><option value="lakhs">Lakhs</option></select>
+                <br> <br>
+                Yearly Turnover: <input type="text" name="yearly_turnover"> <select name="valuation"><option value="crore">Crore</option> <option value="nil">Nil</option><option value="thousand">Thousand</option><option value="lakhs">Lakhs</option></select>
+                <br> <br>
+            </form>
         </div>
 
-        <div id="collection">
-                 
-                Conference 1 :<input type="text" name="entered_number">
-                Conference 2(Dialed number): <input type="text" name="dialed_number">
-                Comment: <input type="text" name="comment"> 
-                <button onclick="postComment()">Comment</button>
         
-            </div>
+            <div id="others">
+            
+            <form>
+               
+                Number of Empolyee: <input type="text" name="number_empolyee"><br> <br>
+                GST Number: <input type="text" name="gst_number"><br> <br>
+                PAN Number: <input type="text" name="pan_number"><br><br>
+                Trading on NCDEX: <select name="ncdex_list"> <option value="no">No</option> <option value="yes"> Yes</option></select> &nbsp; &nbsp; &nbsp; Trading on Stock Market: <select name="stock_market_trading"> <option value="no">No</option> <option value="yes"> Yes</option></select>
+                <br><br>
+                Own Factory: <select name="own_factory"><option value="no">No</option><option value="yes">Yes</option></select> &nbsp; &nbsp; &nbsp; Location(Leave empty if No): <input type="text" name="factory_location" placeholder="Leave empty if No"> <br> <br>
+                Own Godown/Warehouse: <select name="own_storage"><option value="no">No</option> <option value="yes">Yes</option></select> &nbsp; &nbsp; &nbsp; Location(Leave empty if No): <input type="text" name="storage_location" placeholder="Leave empty if No"> <br> <br>
+                
+            </form>
+        </div> -->
 
-        <!-- <div id="comments">
+
+    <!-- <div id="comments">
             <table>
                 <tbody>
                     <tr>
@@ -121,62 +655,454 @@
                 </tbody>
             </table>
         </div> -->
-        <script>
-            function updateProfile(){
-                const dataserver = document.getElementById("dataserver")
-                const arr = {}
-                const inputs = dataserver.querySelectorAll("input")
-                const heads = dataserver.querySelectorAll("th")
-                for (let index = 0; index < inputs.length; index++) {
-                    arr[heads[index].innerHTML] = inputs[index].value   
+    <script>
+
+        function to_dict() {
+            const dataserver = document.getElementById("dataserver")
+            var arr = {};
+            const inputs = dataserver.querySelectorAll("input")
+            const heads = dataserver.querySelectorAll("th")
+            for (let index = 0; index < inputs.length; index++) {
+                arr[heads[index].innerHTML] = inputs[index].value
+            }
+            return arr
+        }
+        function updateProfile() {
+            // const dataserver = document.getElementById("dataserver")
+
+            // const inputs = dataserver.querySelectorAll("input")
+            // const heads = dataserver.querySelectorAll("th")
+            // for (let index = 0; index < inputs.length; index++) {
+            //     arr[heads[index].innerHTML] = inputs[index].value
+            // }
+            arr = to_dict()
+            postData("/matching", arr, "PUT").then((data) => {
+                console.log(data); alert("updated");; // JSON data parsed by `data.json()` cal
+            });
+        }
+
+        function inForm(d) {
+            //document.getElementById("collection").getElementsByClassName("input > entered_number").value = document.getElementById("number").value;
+            for (let index = 0; index < document.getElementById('collection').getElementsByTagName("form").length; index++) {
+                const element = document.getElementById('collection').getElementsByTagName("form")[index]
+                element.reset();
+            }
+
+            da = d.parentElement.parentElement.rowIndex
+            const tbl = document.getElementById('customermatcher')
+            const number = tbl.getElementsByTagName("tr")[da].getElementsByTagName("td").namedItem("Mobile 1").innerText;
+            console.log(number)
+            document.getElementById('basic_1').getElementsByTagName("input").number.value = number;
+            // Adding Entered_Customer
+            arr = to_dict();
+            document.getElementById('entered_name').innerHTML = "Customer Name: " + " " + arr["Customer Name"]
+            let entered_basic_1 = document.getElementById('basic')
+            const inputsArray = entered_basic_1.getElementsByTagName("input")
+            document.getElementsByTagName('span').entered_number.value = window.location.search.split("=")[1]
+            document.getElementsByTagName('span').entered_number.innerHTML = "Customer Number:" + " " + window.location.search.split("=")[1]
+            inputsArray["number"].value = window.location.search.split("=")[1]
+            inputsArray["company_name"].value = arr["Company Name"]
+            inputsArray["commodity_name"].value = arr["Current Commodity"]
+            document.getElementById('company_details').getElementsByTagName('select').card_img.value = arr["Business card"]
+            //const checkboxs = document.getElementById('basic').getElementsByTagName("fieldset").customer_type.getElementsByTagName('input')
+            let card_img_index = selectOption(document.getElementById('company_details').getElementsByTagName('select')["card_img"], arr["Business card"].toLowerCase())
+            document.getElementById('company_details').getElementsByTagName('select')["card_img"].selectedIndex = card_img_index
+            let index = selectOption(basic.getElementsByTagName("select")["customer_type"], arr["Target customers"].toLowerCase())
+            basic.getElementsByTagName("select")["customer_type"].selectedIndex = index;
+            //setCheckboxValue(checkboxs, arr["Target customers"])
+            //Customer Provided
+            let entered_basic_2 = document.getElementById('basic_1')
+            const inputs = entered_basic_2.getElementsByTagName("input")
+            document.getElementsByTagName('span').dialed_number.value = number;
+            document.getElementsByTagName('span').dialed_number.innerHTML = "Customer Number:" + " " + number;
+            document.getElementById('dialed_name').innerHTML = "Customer Name:" + "  " + tbl.getElementsByTagName('tr')[da].getElementsByTagName('td').namedItem('Customer Name').innerText
+            inputs["commodity_name"].value = tbl.getElementsByTagName('tr')[da].getElementsByTagName('td').namedItem('Current Commodity').innerText
+            inputs["company_name"].value = tbl.getElementsByTagName('tr')[da].getElementsByTagName('td').namedItem('Company Name').innerText
+            let collection = document.getElementById("commentCollection")
+            collection.getElementsByTagName('input')['entered_number'].value = document.getElementById('nav_control').getElementsByTagName("input").number.value;
+            collection.getElementsByTagName('input')['dialed_number'].value = document.getElementById('nav_control_1').getElementsByTagName("input").number.value;
+            // if(tbl.getElementsByTagName('tr')[da].getElementsByTagName('td').namedItem('Business card').value == 'None'){
+            //     document.getElementById('company_details_1').getElementsByTagName('select').card_img.selectedIndex = 0;
+            // }
+            let ixd = selectOption(entered_basic_2.getElementsByTagName("select")["customer_type"], tbl.getElementsByTagName("tr")[da].getElementsByTagName("td")["Target customers"].innerText.toLowerCase())
+            entered_basic_2.getElementsByTagName("select")["customer_type"].selectedIndex = ixd;
+
+            //const typeArray = document.getElementById('basic_1').getElementsByTagName("fieldset").customer_type.getElementsByTagName('input')
+            //setCheckboxValue(typeArray, tbl.getElementsByTagName('tr')[da].getElementsByTagName('input').namedItem('Target customers').value)
+            // document.getElementById('company_details').getElementsByTagName('input').card_img.value = tbl.getElementsByTagName('tr')[da].getElementsByTagName('input').namedItem('Business card').value
+            // console.log(tbl.getElementsByTagName('tr')[da].getElementsByTagName('input').namedItem('Business card').value)
+            //setCheckboxValue(typeArray, tbl.getElementsByTagName('tr')[da].getElementsByTagName('input').namedItem('Target customers').value)
+        }
+
+        // function setCheckboxValue(checkarr, string) {
+        //     for (let index = 0; index < checkarr.length; index++) {
+        //         const element = checkarr[index];
+        //         console.log(index)
+        //         console.log(element.value)
+        //         console.log(string)
+        //         if (element.value.search(string.toLowerCase()) != -1) {
+        //             element.checked = true
+        //         }
+
+        //     }
+        // }
+
+        function selectOption(selectArray, string) {
+            let idx;
+            for (let index = 0; index < selectArray.length; index++) {
+                const element = selectArray[index];
+                if (element.value.search(string) != -1) {
+                    idx = index
+                    break;
                 }
-                postData("/matching", arr ,"PUT").then((data) => {
-                    console.log(data); alert("updated");; // JSON data parsed by `data.json()` cal
+            }
+            return idx;
+
+        }
+
+        function postComment() {
+            const enter = document.getElementsByTagName('input')["entered_number"].value
+            const dial = document.getElementsByTagName("input")["dialed_number"].value
+            const comment = document.getElementsByTagName("textarea")["comment"].value;
+            const timestamp = Date.now()
+
+            if (enter != null && dial != null && comment != null) {
+                postData("/matching", { "number_entered_seeker": enter, "number_dialed_provided": dial, "comment": comment, "timestamp": timestamp }).then((data) => {
+                    console.log(data); alert("done");; // JSON data parsed by `data.json()` cal
                 });
             }
-            function inForm(val){
-                //document.getElementById("collection").getElementsByClassName("input > entered_number").value = document.getElementById("number").value;
-                document.getElementsByTagName("input").entered_number.value = window.location.search.split("=")[1]
-                document.getElementsByTagName("input").dialed_number.value = val;
+            else {
+                alert("Cannot add without both number and empty comment")
+            }
+        }
+
+        function addComment(data) {
+            const autogenerate = document.getElementById("autogenerate")
+            for (const key in data["comment_data"]) {
+                autogenerate.append(document.createElement('td').append(document.createTextNode(key)))
+
+            }
+        }
+
+        function submit(string) {
+            //Customer Seeker Information
+
+            //Customer Provided Inforamtion
+            // let basicInputsArray
+            // let basicCheckArray
+            // let basicSelectArray
+            // let dict
+            // const seekerTable = document.getElementById('nav_control')
+            // const Idx = seekerTable.getElementsByTagName('input')
+            // const checkboxs = seekerTable.getElementsByTagName("fieldset")
+            // const selects = seekerTable.getElementsByTagName('select')
+
+            // const providedTable = document.getElementById('nav_control_1')
+            //const tdx = tb; 
+            let id = "";
+            switch (string) {
+                case 'left':
+                    id = "nav_control"
+                    addCustomerSeeker(id);
+                    break;
+                case 'right':
+                    id = "nav_control_1"
+                    addCustomerSeeker(id);
+
+                    break;
+                case 'all':
+                    id = "nav_control"
+                    let info_one = getBrokerInfo(id)
+                    id = "nav_control_1"
+                    let info_two = getBrokerInfo(id)
+                    if(info_one["number"] && info_two["number"]) {
+                        setConnectedStatus(info_one["number"],info_two["number"])
+                    }
+                    alert(info_one["broker_name"])
+                    if ((info_one["broker_name"] == info_two["broker_name"])){
+                        alert("Yo yo honey singh")
+                        addBroker(info_one["broker_name"],info_one["broker_mobile"],info_one["number"],info_two["number"])
+                    }
+                    else {
+                        addBroker(info_one["broker_name"], info_one["broker_mobile"],info_one["number"],info_two["number"])
+                        addBroker(info_two["broker_name"], info_two["broker_mobile"],info_one["number"],info_two["number"])
+                    }
+                    break;
+
+                default:
+                    break;
             }
 
-            function postComment(){
-                const enter = document.getElementsByTagName("input").entered_number.value;
-                const dial = document.getElementsByTagName("input").dialed_number.value;
-                const comment = document.getElementsByTagName("input").comment.value;
-                const timestamp = Date.now()
-                
-                postData("/matching", { entered_number: enter, dialed_number:dial, comment:comment, timestamp:timestamp }).then((data) => {
-                     console.log(data); alert("done");; // JSON data parsed by `data.json()` cal
-                }); 
+
+
+        }
+
+        function setConnectedStatus(){
+            let number1 = document.getElementById("nav_control").getElementsByTagName("input")["number"].value
+            let number2 = document.getElementById("nav_control_1").getElementsByTagName("input")["number"].value
+            
+            data = {}
+            data["number_entered_seeker"] = number1
+            data["number_dialed_provided"] = number2
+            data["connected"] = true
+            data["timestamp"] = Date.now()
+
+            const res = postData('/connectedStatus',data = data).then(res => {
+                    alert(res["status"])
+                })
+            
+        }
+
+        function getBrokerInfo(id){
+            let inputs = document.getElementById(id).getElementsByTagName("input")
+            let dict = {}
+            dict["broker_name"] = inputs["broker_name"].value
+            dict["broker_mobile"] = inputs["broker_mobile"].value
+            dict["number"] = inputs["number"].value
+            return dict 
+ 
+        }
+
+        async function checkIfExisit(number) {
+            let url = '/handleCustomer'
+            const response = await postData(url = url, data = { "number": number })
+            if (response["status"][0] == 0) {
+                console.log(response["status"][0])
+                return false
+            }
+            else {
+                return true
+            }
+        }
+
+        // function getCheckBoxValue(checkboxArray) {
+        //     let checkValue = []
+        //     for (let index = 0; index < checkboxArray.length; index++) {
+        //         const element = checkboxArray[index];
+        //         console.log("checking value" + element.value)
+        //         if (element.checked) {
+        //             checkValue.push(element.value)
+        //         }
+
+        //     }
+
+
+
+        //     return checkValue;
+
+        // }
+
+        function getSelectValue(selectArray) {
+
+        }
+
+        async function addCustomerSeeker(id) {
+            const seekerTable = document.getElementById(id)
+            const Idx = seekerTable.getElementsByTagName('input')
+            const checkboxs = seekerTable.getElementsByTagName("fieldset")["commodity_type"]
+            const checkb = seekerTable.getElementsByTagName("fieldset")["customer_type"]
+            const selects = seekerTable.getElementsByTagName('select')
+            const address = seekerTable.getElementsByTagName("textarea")["business_address"].value
+            //const providedTable = document.getElementById('nav_control_1')
+            // let commodityType  = getCheckBoxValue(checkboxs.querySelectorAll('input'))
+            // // let customerTypes =  getCheckBoxValue(checkb.querySelectorAll('input'))
+            // console.log(checkboxs.querySelectorAll('input'))
+            // console.log(checkb.querySelectorAll('input'))
+            let method = ""
+            let request = {}
+            let accountCheck = await postData(url = '/handleCustomer', data = { "number": Idx["number"].value })
+            console.log(accountCheck["status"])
+
+            if (accountCheck["status"] == 0) {
+                method = "POST"
+            }
+            else {
+                console.log("this put the v" + Idx["number"].value)
+                method = "PUT"
             }
 
-            function addComment(data){
-                const autogenerate = document.getElementById("autogenerate")
-                for (const key in data["comment_data"]) {
-                    autogenerate.append(document.createElement('td').append(document.createTextNode(key)))
-                    
+
+            for (let index = 0; index < Idx.length; index++) {
+                if (Idx[index].getAttribute('name') == 'commodity_type') {
+
+                    request[Idx[index].getAttribute('name')] = commodityType
+                }
+                else if (Idx[index].getAttribute('name') == 'customer_type') {
+                    request[Idx[index].getAttribute('name')] = customerTypes
+                }
+                else {
+                    request[Idx[index].getAttribute('name')] = Idx[index].value
                 }
             }
+            if (request["business_address"] == "")
+                request["business_address"] = ""
+            else
+                request["business_address"] = address;
 
-            async function postData(url = "", data = {}, method="POST") {
-  // Default options are marked with *
-  const response = await fetch(url, {
-    method: method, // *GET, POST, PUT, DELETE, etc.
-    mode: "cors", // no-cors, *cors, same-origin
-    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-    credentials: "same-origin", // include, *same-origin, omit
-    headers: {
-      "Content-Type": "application/json",
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    redirect: "follow", // manual, *follow, error
-    referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-    body: JSON.stringify(data), // body data type must match "Content-Type" header
-  });
-  return response.json(); // parses JSON response into native JavaScript objects
-}
+            for (let index = 0; index < selects.length; index++) {
+                const element = selects[index];
+                if (element.getAttribute('name') == "avg_option") {
+                    if (request["avg_quantity"]) {
+                        request["avg_option"] = element.value
+                        request["avg_quantity"] = request["avg_quantity"] + " " + element.value
+                    }
+                }
+                else if (element.getAttribute('name') == "valuation") {
+                    if (request["valuation"]) {
+                        request["valuation"] = element.value
+                        request["yearly_purchase"] = request["yearly_purchase"] + " " + element.value
+                    }
+                }
+                else if (element.getAttribute('name') == "turnover") {
+                    if (request["yearly_turnover"]) {
+                        request["turnover"] = element.value
+                        request["yearly_turnover"] = request["yearly_turnover"] + " " + element.value
+                    }
+                }
 
-        </script>
-    </body>
+                else if (element.getAttribute('name') == "yearly_purchase") {
+                    if (request["yearly_purchase"]) {
+                        request["yearly_purchase"] = element.value
+                        request["yearly_purchase"] = request["yearly_purchase"] + " " + element.value
+                    }
+                }
+                else {
+
+                    request[element.getAttribute('name')] = element.value
+                }
+
+            }
+            console.log(request)
+            
+            if (accountCheck["status"] == 0) {
+                method = "POST"
+                await postData('/createCustomer', date = request, method = method).then(res => {
+                    alert(res["status"])
+                })
+            }
+            else {
+                console.log("this put the v" + Idx["number"].value)
+                method = "PUT"
+
+                await postData('/createCustomer', date = request, method = method).then(res => {
+                    alert(res["status"])
+                })
+            }
+            
+                        
+
+        }
+        function addBroker(broker_name, broker_mobile, number1, number2) {
+            if ((broker_name != "" && broker_mobile != "") && (number1 != "" || number2 != "")) {
+                    {
+                    alert("Yo yo honey singh")
+                    postData('/broker_ref', data = { "broker_name": broker_name, "broker_mobile": broker_mobile, "number_entered_seeker": number1, "number_dialed_provided": number2 }).then(res => {
+                        alert(res["status"])
+                    })
+                }
+            }
+            else {
+                alert("Broker Name and Broker Mobile can not be empty. Atleast one Customer number needed")
+            }
+
+        }
+
+        function navControl_1(nav_string) {
+            // TODO Implement using dict
+
+            switch (nav_string) {
+                case 'basic_1':
+                    document.getElementById('basic_1').style.display = 'block';
+                    document.getElementById('price_1').style.display = 'none';
+                    document.getElementById('company_details_1').style.display = 'none';
+                    document.getElementById('others_1').style.display = 'none';
+                    document.getElementById('basic_1').style.color = "#0f0f0f";
+                    break;
+                case 'price_1':
+                    document.getElementById('basic_1').style.display = 'none';
+                    document.getElementById('price_1').style.display = 'block';
+                    document.getElementById('company_details_1').style.display = 'none';
+                    document.getElementById('others_1').style.display = 'none';
+                    break;
+                case 'company_details_1':
+                    document.getElementById('basic_1').style.display = 'none';
+                    document.getElementById('price_1').style.display = 'none';
+                    document.getElementById('company_details_1').style.display = 'block';
+                    document.getElementById('others_1').style.display = 'none';
+                    break;
+                case 'others_1':
+                    document.getElementById('basic_1').style.display = 'none';
+                    document.getElementById('price_1').style.display = 'none';
+                    document.getElementById('company_details_1').style.display = 'none';
+                    document.getElementById('others_1').style.display = 'block';
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        function navControl(nav_string) {
+            // TODO Implement using dict
+            let basic = document.getElementById('basic')
+            let price = document.getElementById('price')
+            let company_details = document.getElementById('company_details')
+            let others = document.getElementById('others')
+            let navArray = document.getElementById("nav_control").getElementsByTagName("a")
+
+            switch (nav_string) {
+                case 'basic':
+                    basic.style.display = 'block';
+                    price.style.display = 'none';
+                    company_details.style.display = 'none';
+                    others.style.display = 'none';
+                    break;
+                case 'price':
+                    basic.style.display = 'none';
+                    price.style.display = 'block';
+                    company_details.style.display = 'none';
+                    others.style.display = 'none';
+                    break;
+                case 'company_details':
+                    basic.style.display = 'none';
+                    price.style.display = 'none';
+                    company_details.style.display = 'block';
+                    others.style.display = 'none';
+                    break;
+                case 'others':
+                    basic.style.display = 'none';
+                    price.style.display = 'none';
+                    company_details.style.display = 'none';
+                    others.style.display = 'block';
+                    break;
+                default:
+                    break;
+            }
+
+
+
+        }
+
+        async function postData(url = "", data = {}, method = "POST") {
+            // Default options are marked with *
+            const response = await fetch(url, {
+                method: method, // *GET, POST, PUT, DELETE, etc.
+                mode: "cors", // no-cors, *cors, same-origin
+                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: "same-origin", // include, *same-origin, omit
+                headers: {
+                    "Content-Type": "application/json",
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                redirect: "follow", // manual, *follow, error
+                referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify(data), // body data type must match "Content-Type" header
+            });
+            return response.json(); // parses JSON response into native JavaScript objects
+        }
+
+
+    </script>
+</body>
+
 </html>
