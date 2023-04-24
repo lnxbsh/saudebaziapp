@@ -162,10 +162,29 @@ def createCustomer():
     dic["status"] = "Other Than Post"
     if request.method == "POST":
         status = addCustomer(request.get_json("body"))
-        dic = {}
         dic["status"] = status
         return json.dumps(dic)
-    return json.dumps(dic)
+    elif request.method == 'PUT':
+        status = updateCustomer(request.get_json("body"))
+        return json.dumps(dic)
+
+def updateCustomer(data):
+    conn = psycopg2.connect(
+        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        database="saudebazi",
+        user='saudebaz',
+        password=password)
+    cur = conn.cursor()
+    dic = {}
+    del(data["broker_name"])
+    del(data["broker_mobile"])
+    
+    for key, value in data.items():
+                cur.execute(f'UPDATE CLEANEDTABLE SET "{key}" =' +  ' %(val)s WHERE "Mobile 1" LIKE %(number)s',({"val":value,"number":'%{}%'.format(data["number"])}))
+ #               cur.execute('UPDATE CLEANEDTABLE SET "%(col)s = %(val)s" WHERE "Mobile 1" LIKE %(number)s',({  "col": key,"val": value,'number': '%{}%'.format(data["Mobile 1"])}))
+                conn.commit()
+    dic["status"] = "Updated" 
+    return dic
 
 
 def addCustomer(data):
