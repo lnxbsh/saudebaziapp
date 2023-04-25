@@ -125,10 +125,15 @@
                     {% for key, value in x.items() %}
 
                     {% if key in fields %}
-                    <td name="{{key}}"> {{value}} </td>
-                    {%else%}
-                    <input type="hidden" name="{{key}}" value="{{value}}">
-                    {%endif%}
+                        {% if key == "Mobile 1" %}
+                            {% if value in data["mobileNums"] %}
+                                <td name="{{key}}" style="background-color: yellow;"> {{value}} </td>
+                            {% endif %}
+                        {% endif %}
+                        <td name="{{key}}"> {{value}} </td>
+                    {% else %}
+                        <input type="hidden" name="{{key}}" value="{{value}}">
+                    {% endif %}
 
                     {% endfor %}
 
@@ -815,17 +820,17 @@
                     let info_one = getBrokerInfo(id)
                     id = "nav_control_1"
                     let info_two = getBrokerInfo(id)
-                    if(info_one["number"] && info_two["number"]) {
-                        setConnectedStatus(info_one["number"],info_two["number"])
+                    if (info_one["number"] && info_two["number"]) {
+                        setConnectedStatus(info_one["number"], info_two["number"])
                     }
                     alert(info_one["broker_name"])
-                    if ((info_one["broker_name"] == info_two["broker_name"])){
-                        alert("Yo yo honey singh")
-                        addBroker(info_one["broker_name"],info_one["broker_mobile"],info_one["number"],info_two["number"])
+                    if ((info_one["broker_name"] == info_two["broker_name"])) {
+                        alert("Both broker are same")
+                        addBroker(info_one["broker_name"], info_one["broker_mobile"], info_one["number"], info_two["number"])
                     }
                     else {
-                        addBroker(info_one["broker_name"], info_one["broker_mobile"],info_one["number"],info_two["number"])
-                        addBroker(info_two["broker_name"], info_two["broker_mobile"],info_one["number"],info_two["number"])
+                        addBroker(info_one["broker_name"], info_one["broker_mobile"], info_one["number"], info_two["number"])
+                        addBroker(info_two["broker_name"], info_two["broker_mobile"], info_one["number"], info_two["number"])
                     }
                     break;
 
@@ -837,30 +842,33 @@
 
         }
 
-        function setConnectedStatus(){
+        function setConnectedStatus() {
             let number1 = document.getElementById("nav_control").getElementsByTagName("input")["number"].value
             let number2 = document.getElementById("nav_control_1").getElementsByTagName("input")["number"].value
-            
+
             data = {}
             data["number_entered_seeker"] = number1
             data["number_dialed_provided"] = number2
             data["connected"] = true
             data["timestamp"] = Date.now()
-
-            const res = postData('/connectedStatus',data = data).then(res => {
+            if (number1 && number2) {
+                const res = postData('/connectedStatus', data = data).then(res => {
                     alert(res["status"])
                 })
-            
+            }
+            else {
+                alert("Numbers field cannot be empty")
+            }
         }
 
-        function getBrokerInfo(id){
+        function getBrokerInfo(id) {
             let inputs = document.getElementById(id).getElementsByTagName("input")
             let dict = {}
             dict["broker_name"] = inputs["broker_name"].value
             dict["broker_mobile"] = inputs["broker_mobile"].value
             dict["number"] = inputs["number"].value
-            return dict 
- 
+            return dict
+
         }
 
         async function checkIfExisit(number) {
@@ -973,7 +981,7 @@
 
             }
             console.log(request)
-            
+
             if (accountCheck["status"] == 0) {
                 method = "POST"
                 await postData('/createCustomer', date = request, method = method).then(res => {
@@ -988,14 +996,14 @@
                     alert(res["status"])
                 })
             }
-            
-                        
+
+
 
         }
         function addBroker(broker_name, broker_mobile, number1, number2) {
             if ((broker_name != "" && broker_mobile != "") && (number1 != "" || number2 != "")) {
-                    {
-                    alert("Yo yo honey singh")
+                {
+                    alert("Adding Broker")
                     postData('/broker_ref', data = { "broker_name": broker_name, "broker_mobile": broker_mobile, "number_entered_seeker": number1, "number_dialed_provided": number2 }).then(res => {
                         alert(res["status"])
                     })
@@ -1079,6 +1087,15 @@
                     break;
             }
 
+
+
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            // your code here
+            highLight()
+        }, false);
+
+        function highLight() {
 
 
         }

@@ -4,16 +4,19 @@ import re
 import json
 import os
 from psycopg2 import sql
+import requests as r
+from random import shuffle,choice
 app = Flask(__name__)
 
-
-user = os.getenv('username')
-password = os.getenv('password')
+user = "saudebaz"
+password = "emJNrMiFX83SRCwFcokOnwhzNJkaU7Fn"
+# user = os.getenv('username')
+# password = os.getenv('password')
 #@app.route('/init')
 def db(method='GET', data=''):
     customer = ''
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a",
+        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
         database="saudebazi",
         user=user,
         password=password)
@@ -41,36 +44,61 @@ def db(method='GET', data=''):
             alist = []
             #leads = dict()
             print(f'this is data {data}')
-            cur.execute('SELECT * FROM CLEANEDTABLE WHERE "Mobile 1" LIKE %(name)s', { 'name': '%{}%'.format(data)})
+            cur.execute('SELECT * FROM CLEANEDTABLE WHERE "Mobile 1" LIKE %(number)s', { 'number': '%{}%'.format(data)})
             customer = cur.fetchone()
             
             print(customer)
+            
             #leads = fetchMatch(cur,customer[13])
-            print(customer[13])
-            if customer[13]:
-                cus = re.sub('[^A-Za-z0-9]+', '-', customer[13])
-            else: 
-                cus = 'None' 
-            print(cus)
-            if cus != 'None':
-                for d in cus.split('-'):
-                    temp = fetchMatch(cur,d)
-                    for t in temp:
-                        leads = {}
-                        for i in range(len(t)):
-                            leads[table_coloumn[i]] = t[i]
-                    alist.append(leads)
+            # print(customer[13])
+            # if customer[13]:
+            #     cus = re.sub('[^A-Za-z0-9]+', '-', customer[13])
+            # else: 
+            #     cus = 'None' 
+            # print(cus)
+
+            # if cus != 'None':
+            #     for d in cus.split('-'):
+            #         temp = fetchMatch(cur,d)
+            #         for t in temp:
+            #             leads = {}
+            #             for i in range(len(t)):
+            #                 leads[table_coloumn[i]] = t[i]
+            #         alist.append(leads)
                 
-            else:
-                temp = fetchMatch(cur,'spices')
-                for t in temp:
-                    leads = {}
-                    for i in range(len(t)):
-                        leads[table_coloumn[i]] = t[i]
-                    alist.append(leads)
-                
+            # else:
+            #     temp = fetchMatch(cur,'spices')
+            #     for t in temp:
+            #         leads = {}
+            #         for i in range(len(t)):
+            #             leads[table_coloumn[i]] = t[i]
+            #         alist.append(leads)
+            
+            allNumbers = getNumbers(customer[13])
+            
+            numbers = set()
+            while len(numbers) <= 2:
+                shuffle(allNumbers)
+                numbers.add(choice(allNumbers)["number"])
+
+            print(numbers)
+
+            
+            temp = fetchMatchByNumber(cur,numbers)
+            print(temp)
+            for t in temp:
+                leads = {}
+                for i in range(len(t)):
+                    leads[table_coloumn[i]] = t[i]
+                alist.append(leads)
+             
+            mobilesNums = getConnectedUser(cur,data)
+            mobilesNums.append("9829239542")
+
+
+
             print(alist)
-            return customer, alist
+            return customer, alist,mobilesNums
             # print(alist)
             # for a in alist:
             #     templist = []
@@ -83,6 +111,14 @@ def db(method='GET', data=''):
     conn.close()
     
 
+def getNumbers(cus):
+    if cus:
+        dataJSON =  r.get("https://spice-matcher.onrender.com/p/" + cus)
+    else:
+        dataJSON = r.get("https://spice-matcher.onrender.com/p/" + "spices")
+    print(dataJSON.text)
+    dataJSON = json.loads(dataJSON.text)
+    return dataJSON
 
 @app.route('/broker_ref',methods=["POST","PUT","GET"])
 def addBroker():
@@ -105,8 +141,8 @@ def match():
     if request.method == 'GET':
         number = request.args.get('number')
         #print (number)
-        fetch, leads = db(data=number)
-        return render_template('match.html',data = {"fetch":fetch[1:],"leads":leads})
+        fetch, leads, mobileNums = db(data=number)
+        return render_template('match.html',data = {"fetch":fetch[1:],"leads":leads,"mobileNums":mobileNums})
         #return  json.dumps(db('POST', data))
 
     elif request.method == 'POST':
@@ -146,7 +182,24 @@ def fetchMatch(cur,commoditiy):
     #cur.execute("SELECT * FROM CLEANEDTABLE WHERE 'Current Commodity' = %s", commoditiy)
     return cur.fetchall()
 
+def fetchMatchByNumber(cur,numbers):
+    customers = []
+    for num in numbers:
+        print(num)
+        cur.execute('SELECT * FROM customer_table WHERE "Mobile 1" LIKE %(number)s ', { 'number': '%{}%'.format(num)})
+        val = cur.fetchone()
+        customers.append(val)
+    return customers
 
+def getConnectedUser(cur,num):
+    numbers = []
+    cur.execute('SELECT number_dialed_provided FROM connected_status WHERE "number_entered_seeker" LIKE %(number)s ', { 'number': '%{}%'.format(num)})
+    numbers = cur.fetchall()
+    return numbers
+    
+
+
+    
 @app.route('/handleCustomer', methods=['POST'])
 def handleCustomer():
         status = dbHelper(request.get_json("body")["number"])
@@ -159,14 +212,15 @@ def handleCustomer():
 @app.route('/createCustomer', methods= ["POST","PUT"])
 def createCustomer():
     dic ={}
-    dic["status"] = "Other Than Post"
+    
     if request.method == "POST":
         status = addCustomer(request.get_json("body"))
         dic["status"] = status
         return json.dumps(dic)
     elif request.method == 'PUT':
         status = updateCustomer(request.get_json("body"))
-        return json.dumps(dic)
+        
+        return json.dumps(status)
 
 def updateCustomer(data):
     conn = psycopg2.connect(
@@ -180,7 +234,7 @@ def updateCustomer(data):
     del(data["broker_mobile"])
     
     for key, value in data.items():
-                cur.execute(f'UPDATE CLEANEDTABLE SET "{key}" =' +  ' %(val)s WHERE "Mobile 1" LIKE %(number)s',({"val":value,"number":'%{}%'.format(data["number"])}))
+                cur.execute(f'UPDATE company_details SET "{key}" =' +  ' %(val)s WHERE "number" LIKE %(number)s',({"val":value,"number":'%{}%'.format(data["number"])}))
  #               cur.execute('UPDATE CLEANEDTABLE SET "%(col)s = %(val)s" WHERE "Mobile 1" LIKE %(number)s',({  "col": key,"val": value,'number': '%{}%'.format(data["Mobile 1"])}))
                 conn.commit()
     dic["status"] = "Updated" 
@@ -252,25 +306,25 @@ def checkExistDB(data):
     cur = conn.cursor()
     dic = {}
     number1,number2,connected,timestamp = data['number_entered_seeker'],data['number_dialed_provided'],data['connected'],data['timestamp']
-    cur.execute(f"select count(*) from connected_status where number_entered_seeker LIKE '%{number1}%' AND  number_dialed_provided LIKE '%{number2}%'")
-    print(cur.fetchall())
-    cur.execute(f"select count(*) from connected_status where  number_dialed_provided='{number2}'")
+   
+    #cur.execute(f"select count(*) from connected_status where number_entered_seeker LIKE '%{number1}%' AND  number_dialed_provided LIKE '%{number2}%'")
+    #print(cur.fetchall())
+    cur.execute("select count(*) from connected_status where number_dialed_provided LIKE %(number2)s AND  number_entered_seeker LIKE %(number1)s",{"number1":'%{}%'.format(number1),"number2":'%{}%'.format(number2)})
     # query = sql.SQL("select count(*) from {table} where {pkey} = %s AND {skey} = %s").format(
     
     # table=sql.Identifier('connected_status'),
     # pkey=sql.Identifier('number_dialed_provided'),
     # skey = sql.Identifier('number_entered_seeker'))
     # cur.execute(query,(number2,number1,))
-    val = cur.fetchone()
+    val = cur.fetchall()
     print(val[0])
-    if  not val[0]:
-        cur.execute(f"INSERT INTO connected_status(number_dialed_provided,number_entered_seeker,connected,timestamp) values('{number1}','{number2}','{connected}','{timestamp}')")
+    if  val[0][0] == 0:
+        cur.execute(f"INSERT INTO connected_status(number_dialed_provided,number_entered_seeker,connected,timestamp) values('{number2}','{number1}','{connected}','{timestamp}')")
         conn.commit()
         dic["status"] = "Connected"
         return dic
     
     else:
-        
         dic["status"] = "Already Connected"
         return dic
     
