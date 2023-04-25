@@ -8,15 +8,15 @@ import requests as r
 from random import shuffle,choice
 app = Flask(__name__)
 
-user = "saudebaz"
-password = "emJNrMiFX83SRCwFcokOnwhzNJkaU7Fn"
+user = os.getenv("username")
+password = os.getenv("password")
 # user = os.getenv('username')
 # password = os.getenv('password')
 #@app.route('/init')
 def db(method='GET', data=''):
     customer = ''
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
         user=user,
         password=password)
@@ -226,7 +226,7 @@ def updateCustomer(data):
     conn = psycopg2.connect(
         host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
         database="saudebazi",
-        user='saudebaz',
+        user=user,
         password=password)
     cur = conn.cursor()
     dic = {}
@@ -243,9 +243,9 @@ def updateCustomer(data):
 
 def addCustomer(data):
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
-        user='saudebaz',
+        user=user,
         password=password)
     cur = conn.cursor()
 
@@ -277,9 +277,9 @@ def addCustomer(data):
 
 def broker_db(query):
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
-        user='saudebaz',
+        user=user,
         password=password)
     cur = conn.cursor()
     cur.execute(query)
@@ -299,9 +299,9 @@ def statusCheckDBHelper():
 
 def checkExistDB(data):
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
-        user='saudebaz',
+        user=user,
         password=password)
     cur = conn.cursor()
     dic = {}
@@ -332,9 +332,9 @@ def checkExistDB(data):
 
 def dbHelper(number):
     conn = psycopg2.connect(
-        host="dpg-cgtv1paut4mcfrnp2b70-a.singapore-postgres.render.com",
+        host="dpg-cgtv1paut4mcfrnp2b70-a",
         database="saudebazi",
-        user='saudebaz',
+        user=user,
         password=password)
     cur = conn.cursor()
 
